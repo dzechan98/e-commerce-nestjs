@@ -1,4 +1,5 @@
 import { PartialType } from '@nestjs/mapped-types';
+import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Type } from 'class-transformer';
 import {
   IsArray,
@@ -11,30 +12,37 @@ import {
 import { CategoryDto } from 'src/dto/category.dto';
 
 export class CreateProductDto {
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   title: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   description: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsUUID()
   category: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsNumber()
   price: number;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsNumber()
   quantity: number;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsUrl()
   photoURL: string;
 
+  @ApiProperty()
   @IsArray()
   @IsUrl({}, { each: true })
   listPhotos: string[];

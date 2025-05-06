@@ -20,7 +20,7 @@ import { ProductEntity } from 'src/entities/product.entity';
       synchronize: true,
     }),
     CategoriesModule,
-    //ProductsModule,
+    ProductsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

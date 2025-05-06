@@ -14,7 +14,9 @@ import {
   CreateCategoryDto,
   UpdateCategoryDto,
 } from 'src/dto/category.dto';
+import { ApiTags } from '@nestjs/swagger';
 
+@ApiTags('Categories')
 @Controller('categories')
 export class CategoriesController {
   constructor(private readonly categoriesService: CategoriesService) {}
@@ -34,10 +36,7 @@ export class CategoriesController {
 
   @Post()
   async createCategory(@Body() body: CreateCategoryDto) {
-    const category = await this.categoriesService.createCategory(body);
-    return plainToInstance(CategoryDto, category, {
-      excludeExtraneousValues: true,
-    });
+    return this.categoriesService.createCategory(body);
   }
 
   @Patch(':id')
@@ -45,18 +44,11 @@ export class CategoriesController {
     @Param('id') id: string,
     @Body() body: UpdateCategoryDto,
   ) {
-    console.log(body);
-    const category = await this.categoriesService.updateCategory(id, body);
-    return plainToInstance(CategoryDto, category, {
-      excludeExtraneousValues: true,
-    });
+    return this.categoriesService.updateCategory(id, body);
   }
 
   @Delete(':id')
   async deleteCategory(@Param('id') id: string) {
-    const category = await this.categoriesService.deleteCategory(id);
-    return plainToInstance(CategoryDto, category, {
-      excludeExtraneousValues: true,
-    });
+    return this.categoriesService.deleteCategory(id);
   }
 }

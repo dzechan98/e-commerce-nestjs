@@ -1,13 +1,16 @@
 import { PartialType } from '@nestjs/mapped-types';
+import { ApiProperty } from '@nestjs/swagger';
 import { Expose, Transform } from 'class-transformer';
 import { IsNotEmpty, IsString, IsUrl } from 'class-validator';
 
 export class CreateCategoryDto {
+  @ApiProperty()
   @IsNotEmpty()
   @IsString()
   @Transform(({ value }) => value.toLowerCase().trim())
   name: string;
 
+  @ApiProperty()
   @IsNotEmpty()
   @IsUrl()
   photoURL: string;

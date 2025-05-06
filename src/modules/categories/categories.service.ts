@@ -16,58 +16,6 @@ export class CategoriesService {
     private readonly categoryRepository: Repository<CategoryEntity>,
   ) {}
 
-  async createCategory(
-    categoryData: CreateCategoryDto,
-  ): Promise<CategoryEntity> {
-    const existingCategory = await this.categoryRepository.findOne({
-      where: { name: categoryData.name },
-    });
-
-    const slug = slugify(categoryData.name, { lower: true });
-
-    if (existingCategory) {
-      throw new BadRequestException('Category already exists');
-    }
-
-    const category = this.categoryRepository.create({
-      ...categoryData,
-      slug,
-    });
-    return this.categoryRepository.save(category);
-  }
-
-  async updateCategory(
-    id: string,
-    categoryData: UpdateCategoryDto,
-  ): Promise<CategoryEntity> {
-    const existingCategory = await this.categoryRepository.findOne({
-      where: { id },
-    });
-
-    if (!existingCategory) {
-      throw new BadRequestException('Category not found');
-    }
-
-    if (categoryData.name && categoryData.name !== existingCategory.name) {
-      const nameExists = await this.categoryRepository.findOne({
-        where: { name: categoryData.name },
-      });
-
-      if (nameExists) {
-        throw new BadRequestException('Category name already exists');
-      }
-    }
-
-    const slug = slugify(categoryData.name, { lower: true });
-
-    await this.categoryRepository.update(id, {
-      ...categoryData,
-      slug,
-    });
-
-    return this.categoryRepository.findOne({ where: { id } });
-  }
-
   async getCategoryById(id: string): Promise<CategoryEntity> {
     const category = await this.categoryRepository.findOne({ where: { id } });
 
@@ -82,7 +30,61 @@ export class CategoriesService {
     return this.categoryRepository.find();
   }
 
-  async deleteCategory(id: string): Promise<CategoryEntity> {
+  async createCategory(categoryData: CreateCategoryDto) {
+    const existingCategory = await this.categoryRepository.findOne({
+      where: { name: categoryData.name },
+    });
+
+    const slug = slugify(categoryData.name, { lower: true });
+
+    if (existingCategory) {
+      throw new BadRequestException('Category already exists');
+    }
+
+    const category = this.categoryRepository.create({
+      ...categoryData,
+      slug,
+    });
+    await this.categoryRepository.save(category);
+
+    return {
+      message: 'Category created successfully',
+      statusCode: 201,
+    };
+  }
+
+  async updateCategory(id: string, categoryData: UpdateCategoryDto) {
+    const existingCategory = await this.categoryRepository.findOne({
+      where: { id },
+    });
+
+    if (!existingCategory) {
+      throw new NotFoundException('Category not found');
+    }
+
+    if (categoryData.name && categoryData.name !== existingCategory.name) {
+      const nameExists = await this.categoryRepository.findOne({
+        where: { name: categoryData.name },
+      });
+
+      if (nameExists) {
+        throw new BadRequestException('Category name already exists');
+      }
+    }
+
+    const slug = slugify(categoryData?.name ?? existingCategory.slug, {
+      lower: true,
+    });
+
+    Object.assign(existingCategory, { slug, ...categoryData });
+    await this.categoryRepository.save(existingCategory);
+    return {
+      message: 'Category updated successfully',
+      statusCode: 200,
+    };
+  }
+
+  async deleteCategory(id: string) {
     const category = await this.categoryRepository.findOne({ where: { id } });
 
     if (!category) {
@@ -90,6 +92,9 @@ export class CategoriesService {
     }
 
     await this.categoryRepository.delete(id);
-    return category;
+    return {
+      message: 'Category deleted successfully',
+      statusCode: 200,
+    };
   }
 }
