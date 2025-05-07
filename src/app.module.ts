@@ -9,6 +9,7 @@ import { ProductEntity } from 'src/entities/product.entity';
 import { AuthModule } from './modules/auth/auth.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { UsersModule } from './modules/users/users.module';
+import { UserEntity } from 'src/entities/user.entity';
 
 @Module({
   imports: [
@@ -25,7 +26,7 @@ import { UsersModule } from './modules/users/users.module';
         username: configService.get('DB_USERNAME'),
         password: configService.get('DB_PASSWORD'),
         database: configService.get('DB_DATABASE'),
-        entities: [CategoryEntity, ProductEntity],
+        entities: [CategoryEntity, ProductEntity, UserEntity],
         synchronize: true,
       }),
     }),

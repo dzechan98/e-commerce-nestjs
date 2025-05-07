@@ -7,28 +7,29 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { AuthService } from 'src/modules/auth/auth.service';
-import { LocalAuthGuard } from 'src/guards/local-auth.guard';
 import { JwtAuthGuard } from 'src/guards/jwt-auth.guard';
+import { LoginUserDto, SignUpDto, UserDto } from 'src/dto/user.dto';
+import { plainToInstance } from 'class-transformer';
 
 @Controller('auth')
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  @UseGuards(LocalAuthGuard)
   @Post('login')
-  signIn(@Request() req) {
-    return this.authService.login(req.user);
+  login(@Body() userDto: LoginUserDto) {
+    return this.authService.login(userDto);
+  }
+
+  @Post('register')
+  async register(@Body() userDto: SignUpDto) {
+    return this.authService.register(userDto);
   }
 
   @UseGuards(JwtAuthGuard)
   @Get('profile')
   getProfile(@Request() req) {
-    return req.user;
-  }
-
-  @UseGuards(LocalAuthGuard)
-  @Post('auth/logout')
-  async logout(@Request() req) {
-    return req.logout();
+    return plainToInstance(UserDto, req.user, {
+      excludeExtraneousValues: true,
+    });
   }
 }

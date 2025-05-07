@@ -1,6 +1,13 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
+import { LoginUserDto, SignUpDto } from 'src/dto/user.dto';
 import { UsersService } from 'src/modules/users/users.service';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
@@ -9,19 +16,37 @@ export class AuthService {
     private jwtService: JwtService,
   ) {}
 
-  async validateUser(username: string, pass: string): Promise<any> {
-    const user = await this.usersService.findOne(username);
-    if (user && user.password === pass) {
-      const { password, ...result } = user;
-      return result;
-    }
-    return null;
+  async generateToken(user: { id: string }) {
+    const payload = { sub: user.id };
+    return {
+      accessToken: this.jwtService.sign(payload),
+    };
   }
 
-  async login(user: any) {
-    const payload = { username: user.username, sub: user.userId };
-    return {
-      access_token: this.jwtService.sign(payload),
-    };
+  async login(loginDto: LoginUserDto) {
+    const user = await this.usersService.findOneByEmail(loginDto.email);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid password');
+    }
+
+    return this.generateToken({ id: user.id });
+  }
+
+  async register(signUpDto: SignUpDto) {
+    const user = await this.usersService.findOneByEmail(signUpDto.email);
+    if (user) {
+      throw new ConflictException('Email is already registered');
+    }
+
+    const newUser = await this.usersService.createUser(signUpDto);
+    return this.generateToken({ id: newUser.id });
   }
 }

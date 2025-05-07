@@ -1,23 +1,36 @@
-import { Injectable } from '@nestjs/common';
-
-export type User = any;
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { SignUpDto } from 'src/dto/user.dto';
+import { UserEntity } from 'src/entities/user.entity';
+import { Repository } from 'typeorm';
+import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class UsersService {
-  private readonly users = [
-    {
-      userId: 1,
-      username: 'john',
-      password: 'changeme',
-    },
-    {
-      userId: 2,
-      username: 'maria',
-      password: 'guess',
-    },
-  ];
+  constructor(
+    @InjectRepository(UserEntity)
+    private readonly userRepository: Repository<UserEntity>,
+  ) {}
 
-  async findOne(username: string): Promise<User | undefined> {
-    return this.users.find((user) => user.username === username);
+  async findById(id: string) {
+    return this.userRepository.findOne({ where: { id } });
+  }
+
+  async findOneByEmail(email: string) {
+    return this.userRepository.findOne({ where: { email } });
+  }
+
+  async createUser(signUpDto: SignUpDto) {
+    const hashedPassword = await bcrypt.hash(signUpDto.password, 10);
+    const newUser = this.userRepository.create({
+      ...signUpDto,
+      password: hashedPassword,
+    });
+
+    try {
+      return await this.userRepository.save(newUser);
+    } catch (error) {
+      throw new InternalServerErrorException('Failed to create user');
+    }
   }
 }
